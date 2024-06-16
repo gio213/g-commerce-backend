@@ -52,6 +52,16 @@ router.post("/login", [
 })
 
 
+router.post("/logout", (req: Request, res: Response) => {
+    res.cookie("auth_token", "", {
+        expires: new Date(0),
+        secure: isProduction,
+        httpOnly: true,
+        sameSite: isProduction ? "none" : "lax"
+    })
+    res.status(200).send({ message: "Logout successful" })
+})
+
 router.get("/validate-token", verifyToken, (req: Request, res: Response) => {
     res.status(200).send({ userId: req.userId })
 })
