@@ -70,6 +70,47 @@ router.get("/all", verifyToken, async (req: Request, res: Response) => {
     res.json(products)
 })
 
+router.get("/detail/:productId", verifyToken, async (req: Request, res: Response) => {
+    await connectToDatabase()
+    const product = await Product.findById(req.params.id)
+    if (!product) {
+        return res.status(404).json({ message: "Product not found" })
+    }
+    res.json(product)
+})
+
+
+router.put("/update/:productId", verifyToken, async (req: Request, res: Response) => {
+    try {
+        await connectToDatabase();
+
+        const updateDProduct: ProductType = req.body;
+        updateDProduct.lastUpdated = new Date();
+
+        console.log("Updating product with ID:", req.params.productId);
+        console.log("User ID from token:", req.userId);
+        console.log("Update data:", updateDProduct);
+
+        const product = await Product.findOneAndUpdate(
+            { _id: req.params.productId, userId: req.userId },
+            { $set: updateDProduct },
+            { new: true }
+        );
+
+        if (!product) {
+            console.log("Product not found for update");
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        console.log("Updated product:", product);
+
+        res.status(200).json(product);
+    } catch (error) {
+        console.error("Error updating product:", error);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+});
+
 
 async function uploadImages(imageFiles: Express.Multer.File[]) {
 

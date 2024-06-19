@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express"
-import conrs from "cors"
+import cors from "cors"
 import "dotenv/config"
 import userRoutes from "./routes/users"
 import cookieParser from "cookie-parser"
@@ -7,6 +7,7 @@ import authRoutes from "./routes/auth"
 import categoryRoutes from "./routes/category"
 import productRoutes from "./routes/product"
 import { v2 as cloudinary } from 'cloudinary';
+import path from "path"
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -20,10 +21,12 @@ const app = express()
 app.use(cookieParser())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(conrs({
+app.use(cors({
     origin: process.env.FRONTEND_URL,
     credentials: true
 }))
+
+
 app.get("/health", (req: Request, res: Response) => {
     res.send({ message: "Health OK!" });
 });

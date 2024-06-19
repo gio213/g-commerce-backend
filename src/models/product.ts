@@ -29,8 +29,8 @@ const productSchema = new mongoose.Schema({
     lastUpdated: { type: Date, required: true }
 }, { timestamps: true })
 
+const Product = mongoose.model<ProductType & mongoose.Document>("Product", productSchema);
 
-const Product = mongoose.model<ProductType>("Product", productSchema)
 
 const categorySchema = new mongoose.Schema({
     categoryName: { type: String, required: true }
