@@ -77,6 +77,7 @@ router.get("/all", async (req: Request, res: Response) => {
         res.json({ products, totalPages: Math.ceil(totalProducts / limit), currentPage: page, totalProducts: totalProducts })
 
     } catch (error) {
+        res.status(500).json({ message: "Something went wrong" })
         console.error(error);
     }
 })
