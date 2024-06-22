@@ -57,7 +57,7 @@ router.post("/register", [
 router.get("/me", verifyToken, async (req: Request, res: Response) => {
     try {
         await connectToDatabase();
-        const currentUser = await User.findOne({ _id: req.userId });
+        const currentUser = await User.findOne({ _id: req.userId }).select("-password");
         console.log(currentUser);
         if (!currentUser) {
             return res.status(404).json({ message: "User not found" });
@@ -68,5 +68,25 @@ router.get("/me", verifyToken, async (req: Request, res: Response) => {
         res.status(500).json({ message: "Error getting user" });
     }
 });
+
+router.put("/update/:userId", verifyToken, async (req: Request, res: Response) => {
+    try {
+        await connectToDatabase();
+        const currentUser = await User.findOne({ _id: req.userId });
+        if (!currentUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        currentUser.firstName = req.body.firstName;
+        currentUser.lastName = req.body.lastName;
+        currentUser.email = req.body.email;
+        currentUser.password = req.body.newPassword;
+        await currentUser.save();
+        res.status(200).json({ message: "User updated}" });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error updating user" });
+    }
+})
 
 export default router;

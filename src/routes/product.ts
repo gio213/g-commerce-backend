@@ -61,22 +61,35 @@ router.post("/create", verifyToken, [
 })
 
 
-router.get("/all", verifyToken, async (req: Request, res: Response) => {
+router.get("/all", async (req: Request, res: Response) => {
     await connectToDatabase()
-    const products = await Product.find()
-    if (!products) {
-        return res.status(404).json({ message: "No products found" })
+    const page = parseInt(req.query.page as string) || 1
+    const limit = parseInt(req.query.limit as string) || 10
+    const skip = (page - 1) * limit
+    try {
+        const products = await Product.find().skip(skip).limit(limit)
+        const totalProducts = await Product.countDocuments()
+
+        if (!products.length) {
+            return res.status(404).json({ message: "No products found" })
+        }
+
+        res.json({ products, totalPages: Math.ceil(totalProducts / limit), currentPage: page, totalProducts: totalProducts })
+
+    } catch (error) {
+        console.error(error);
     }
-    res.json(products)
 })
 
-router.get("/detail/:productId", verifyToken, async (req: Request, res: Response) => {
+router.get("/detail/:productId", async (req: Request, res: Response) => {
     await connectToDatabase()
-    const product = await Product.findById(req.params.id)
-    if (!product) {
+    const productDetail = await Product.findById(req.params.productId)
+
+    if (!productDetail) {
         return res.status(404).json({ message: "Product not found" })
     }
-    res.json(product)
+    const simmilarProducts = await Product.find({ category: productDetail.category, _id: { $ne: productDetail._id } }).limit(5)
+    res.json({ productDetail, simmilarProducts })
 })
 
 
@@ -87,22 +100,18 @@ router.put("/update/:productId", verifyToken, async (req: Request, res: Response
         const updateDProduct: ProductType = req.body;
         updateDProduct.lastUpdated = new Date();
 
-        console.log("Updating product with ID:", req.params.productId);
-        console.log("User ID from token:", req.userId);
-        console.log("Update data:", updateDProduct);
-
         const product = await Product.findOneAndUpdate(
             { _id: req.params.productId, userId: req.userId },
             { $set: updateDProduct },
             { new: true }
         );
 
+
         if (!product) {
             console.log("Product not found for update");
             return res.status(404).json({ message: "Product not found" });
         }
 
-        console.log("Updated product:", product);
 
         res.status(200).json(product);
     } catch (error) {
