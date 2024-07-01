@@ -31,5 +31,21 @@ router.post("/add", verifyToken, async (req: Request, res: Response) => {
     }
 });
 
+router.get("/wishlist-items", verifyToken, async (req: Request, res: Response) => {
+    try {
+        await connectToDatabase();
+        const userId = req.userId as string;
+        const wishlist = await Wishlist.find({ userId }).populate("productId");
+        if (!wishlist || wishlist.length === 0) {
+            return res.status(404).json({ message: "Wishlist is empty" });
+        }
+
+        res.json(wishlist)
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+})
+
 
 export default router
