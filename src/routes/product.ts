@@ -64,7 +64,7 @@ router.post("/create", verifyToken, [
 router.get("/all", async (req: Request, res: Response) => {
     await connectToDatabase()
     const page = parseInt(req.query.page as string) || 1
-    const limit = parseInt(req.query.limit as string) || 10
+    const limit = parseInt(req.query.limit as string) || 8
     const skip = (page - 1) * limit
     try {
         const products = await Product.find().skip(skip).limit(limit)

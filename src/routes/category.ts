@@ -7,7 +7,7 @@ const router = express.Router();
 
 
 
-router.get('/categories', verifyToken, async (req: Request, res: Response) => {
+router.get('/categories', async (req: Request, res: Response) => {
     try {
         await connectToDatabase();
         const categories = await Category.find();
@@ -36,5 +36,7 @@ router.post("/create-category", verifyToken, async (req: Request, res: Response)
         res.status(500).json({ message: error.message });
     }
 });
+
+
 
 export default router;
