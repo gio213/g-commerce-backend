@@ -10,8 +10,6 @@ router.post("/add", verifyToken, async (req: Request, res: Response) => {
     try {
         await connectToDatabase();
         const { productId, userId } = req.body;
-        console.log("productId", productId, "userId", userId)
-
         const product = await Product.findById(productId);
         if (!product) {
             return res.status(404).json({ message: "Product not found" });
@@ -46,5 +44,21 @@ router.get("/cart-items", verifyToken, async (req: Request, res: Response) => {
         res.status(500).json({ message: "Something went wrong" });
     }
 });
+
+router.delete("/remove/:cartItemId", verifyToken, async (req: Request, res: Response) => {
+    try {
+        await connectToDatabase();
+        const userId = req.userId as string;
+        const { cartItemId } = req.params;
+        const cartItem = await Cart.findOneAndDelete({ _id: cartItemId, userId: userId });
+        if (!cartItem) {
+            return res.status(404).json({ message: "Cart item not found" });
+        }
+        res.json({ message: "Cart item removed" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+})
 
 export default router

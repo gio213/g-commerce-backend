@@ -47,5 +47,23 @@ router.get("/wishlist-items", verifyToken, async (req: Request, res: Response) =
     }
 })
 
+router.delete("/remove/:wishlistItemId", verifyToken, async (req: Request, res: Response) => {
+    try {
+        await connectToDatabase();
+        const userId = req.userId as string;
+        console.log(req.params)
+        const { wishlistItemId } = req.params;
+
+        const cartItem = await Wishlist.findOneAndDelete({ _id: wishlistItemId, userId: userId });
+        if (!cartItem) {
+            return res.status(404).json({ message: "wishlist item not found" });
+        }
+        res.json({ message: " item removed wishlist" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+})
+
 
 export default router
