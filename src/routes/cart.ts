@@ -32,13 +32,17 @@ router.get("/cart-items", verifyToken, async (req: Request, res: Response) => {
     try {
         await connectToDatabase();
         const userId = req.userId as string;
-        const cart = await Cart.find({ userId }).populate("productId");
-        if (!cart || cart.length === 0) {
-            return res.status(404).json({ message: "Cart is empty" });
+        const cartItems = await Cart.find({ userId }).populate("productId");
+        if (!cartItems.length) {
+            return res.status(404).json({ message: "No items in cart" });
         }
 
+        const transformedCartItems = cartItems.map(item => {
+            const { productId, ...rest } = item.toObject();
+            return { ...rest, cartItem: productId };
+        });
 
-        res.json(cart)
+        res.json(transformedCartItems);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Something went wrong" });
@@ -59,6 +63,20 @@ router.delete("/remove/:cartItemId", verifyToken, async (req: Request, res: Resp
         console.error(error);
         res.status(500).json({ message: "Something went wrong" });
     }
+})
+
+
+router.delete("/clear-cart", verifyToken, async (req: Request, res: Response) => {
+    try {
+        await connectToDatabase();
+        const userId = req.userId as string;
+        await Cart.deleteMany({ userId });
+        res.json({ message: "Cart cleared" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+
 })
 
 export default router

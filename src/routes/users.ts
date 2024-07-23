@@ -58,7 +58,6 @@ router.get("/me", verifyToken, async (req: Request, res: Response) => {
     try {
         await connectToDatabase();
         const currentUser = await User.findOne({ _id: req.userId }).select("-password");
-        console.log(currentUser);
         if (!currentUser) {
             return res.status(404).json({ message: "User not found" });
         }

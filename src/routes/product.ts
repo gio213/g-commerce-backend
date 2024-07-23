@@ -6,6 +6,8 @@ import { body } from "express-validator"
 import { ProductType } from "../models/product"
 import multer from "multer"
 import cloudinary from "cloudinary"
+import { ProductReview } from "../models/productReview"
+import User from "../models/user"
 
 
 
@@ -62,36 +64,109 @@ router.post("/create", verifyToken, [
 
 
 router.get("/all", async (req: Request, res: Response) => {
-    await connectToDatabase()
-    const page = parseInt(req.query.page as string) || 1
-    const limit = parseInt(req.query.limit as string) || 8
-    const skip = (page - 1) * limit
+    await connectToDatabase();
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 8;
+    const skip = (page - 1) * limit;
+
     try {
-        const products = await Product.find().skip(skip).limit(limit)
-        const totalProducts = await Product.countDocuments()
+        const products = await Product.find().skip(skip).limit(limit);
+        const totalProducts = await Product.countDocuments();
 
         if (!products.length) {
-            return res.status(404).json({ message: "No products found" })
+            return res.status(404).json({ message: "No products found" });
         }
 
-        res.json({ products, totalPages: Math.ceil(totalProducts / limit), currentPage: page, totalProducts: totalProducts })
+        res.json({
+            products,
+            totalPages: Math.ceil(totalProducts / limit),
+            currentPage: page,
+            totalProducts: totalProducts
+        });
 
     } catch (error) {
-        res.status(500).json({ message: "Something went wrong" })
+        res.status(500).json({ message: "Something went wrong" });
         console.error(error);
     }
-})
+});
+
+router.get("/products-paginated", async (req: Request, res: Response) => {
+    await connectToDatabase();
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 8;
+    const skip = (page - 1) * limit;
+
+    try {
+        const products = await Product.find().skip(skip).limit(limit);
+        const totalProducts = await Product.countDocuments();
+
+        if (!products.length) {
+            return res.status(404).json({ message: "No products found" });
+        }
+
+        res.json({
+            products,
+            totalPages: Math.ceil(totalProducts / limit),
+            currentPage: page,
+            totalProducts: totalProducts
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: "Something went wrong" });
+        console.error(error);
+    }
+});
+
 
 router.get("/detail/:productId", async (req: Request, res: Response) => {
-    await connectToDatabase()
-    const productDetail = await Product.findById(req.params.productId)
+    try {
+        await connectToDatabase();
+        const productDetail = await Product.findById(req.params.productId);
+        const reviews = await ProductReview.find({ productId: req.params.productId });
 
-    if (!productDetail) {
-        return res.status(404).json({ message: "Product not found" })
+        if (!productDetail) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+        const simmilarProducts = await Product.find({ category: productDetail.category, _id: { $ne: productDetail._id } }).limit(5);
+
+        res.json({
+            productDetail,
+            simmilarProducts,
+            reviews,
+
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Something went wrong" });
     }
-    const simmilarProducts = await Product.find({ category: productDetail.category, _id: { $ne: productDetail._id } }).limit(5)
-    res.json({ productDetail, simmilarProducts })
-})
+});
+
+router.get("/reviews-paginated/:productId", async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 4;
+    const skip = (page - 1) * limit;
+    try {
+        await connectToDatabase();
+        const totalReviewsCount = await ProductReview.countDocuments({ productId: req.params.productId });
+        const reviews = await ProductReview.find({ productId: req.params.productId }).skip(skip).limit(limit);
+
+        if (!reviews.length) {
+            return res.status(404).json({ message: "No reviews found" })
+        }
+
+        res.json({
+            reviews,
+            totalRewiews: totalReviewsCount,
+            totalReviewsPages: Math.ceil(totalReviewsCount / limit),
+            currentRewiesPage: page
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+});
+
+
 
 
 router.put("/update/:productId", verifyToken, async (req: Request, res: Response) => {
@@ -109,7 +184,6 @@ router.put("/update/:productId", verifyToken, async (req: Request, res: Response
 
 
         if (!product) {
-            console.log("Product not found for update");
             return res.status(404).json({ message: "Product not found" });
         }
 
@@ -120,6 +194,45 @@ router.put("/update/:productId", verifyToken, async (req: Request, res: Response
         res.status(500).json({ message: "Something went wrong" });
     }
 });
+
+router.post("/create-review/:productId", verifyToken, async (req: Request, res: Response) => {
+    try {
+        await connectToDatabase();
+        const userId = req.userId;
+        const productId = req.params.productId;
+        const comment = req.body.comment;
+        const starRating = req.body.starRating;
+
+        if (!userId || !productId || !starRating || !comment) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        // Fetch user details from the database
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const savedReview = await ProductReview.create({
+            userId,
+            productId,
+            starRating,
+            comment,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+        });
+
+        // Populate the user field
+        const populatedReview = await ProductReview.findById(savedReview._id).populate("_id", " email");
+
+        res.status(201).json({ message: "Review created successfully", review: populatedReview });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+});
+
 
 
 async function uploadImages(imageFiles: Express.Multer.File[]) {

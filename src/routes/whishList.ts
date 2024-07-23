@@ -51,7 +51,6 @@ router.delete("/remove/:wishlistItemId", verifyToken, async (req: Request, res: 
     try {
         await connectToDatabase();
         const userId = req.userId as string;
-        console.log(req.params)
         const { wishlistItemId } = req.params;
 
         const cartItem = await Wishlist.findOneAndDelete({ _id: wishlistItemId, userId: userId });
@@ -59,6 +58,19 @@ router.delete("/remove/:wishlistItemId", verifyToken, async (req: Request, res: 
             return res.status(404).json({ message: "wishlist item not found" });
         }
         res.json({ message: " item removed wishlist" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+})
+
+
+router.delete("/clear-wishlist", verifyToken, async (req: Request, res: Response) => {
+    try {
+        await connectToDatabase();
+        const userId = req.userId as string;
+        await Wishlist.deleteMany({ userId });
+        res.json({ message: "Wishlist cleared" });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Something went wrong" });

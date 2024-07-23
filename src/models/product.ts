@@ -6,6 +6,20 @@ export type categoryType = {
     name: string;
 
 }
+
+
+
+
+export type CreateProductReview = {
+    userId: string;
+    productId: string;
+    starRating: number;
+    comment: string;
+
+
+
+}
+
 export type ProductType = {
     _id: string;
     userId: string;
@@ -16,6 +30,8 @@ export type ProductType = {
     imagesUrls: string[];
     category: categoryType;
     lastUpdated: Date;
+    productId?: string;
+
 }
 
 const productSchema = new mongoose.Schema({
