@@ -20,7 +20,8 @@ export type CreateProductReview = {
 
 }
 
-export type ProductType = {
+
+export type CartItems = {
     _id: string;
     userId: string;
     name: string;
@@ -31,8 +32,34 @@ export type ProductType = {
     category: categoryType;
     lastUpdated: Date;
     productId?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    docId?: string;
+
+
+
 
 }
+
+export type ProductType = {
+    _id: string;
+    userId: string;
+    name: string;
+    description: string;
+    price: number;
+    countInStock: number;
+    imagesUrls: string[];
+    category: categoryType;
+    lastUpdated: Date;
+    productId?: CartItems;
+    createdAt?: string;
+    updatedAt?: string;
+
+
+
+
+}
+
 
 const productSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },

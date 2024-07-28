@@ -33,21 +33,41 @@ router.get("/cart-items", verifyToken, async (req: Request, res: Response) => {
         await connectToDatabase();
         const userId = req.userId as string;
         const cartItems = await Cart.find({ userId }).populate("productId");
+        console.log("cartItems", cartItems);
+
         if (!cartItems.length) {
             return res.status(404).json({ message: "No items in cart" });
         }
 
-        const transformedCartItems = cartItems.map(item => {
-            const { productId, ...rest } = item.toObject();
-            return { ...rest, cartItem: productId };
+        const formattedCartItems = cartItems.map((cartItem) => {
+            return {
+                cartItemId: cartItem._id,
+
+                category: cartItem.productId?.category,
+                countInStock: cartItem.productId?.countInStock,
+                createdAt: cartItem.productId?.createdAt,
+                description: cartItem.productId?.description,
+                imagesUrls: cartItem.productId?.imagesUrls,
+                lastUpdated: cartItem.productId?.lastUpdated,
+                name: cartItem.productId?.name,
+                price: cartItem.productId?.price,
+                updatedAt: cartItem.productId?.updatedAt,
+                userId: cartItem.productId?.userId,
+                docId: cartItem?._id,
+                _id: cartItem.productId?._id
+
+            };
         });
 
-        res.json(transformedCartItems);
+        res.json(formattedCartItems);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Something went wrong" });
     }
 });
+
+
+
 
 router.delete("/remove/:cartItemId", verifyToken, async (req: Request, res: Response) => {
     try {

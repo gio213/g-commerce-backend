@@ -35,12 +35,31 @@ router.get("/wishlist-items", verifyToken, async (req: Request, res: Response) =
     try {
         await connectToDatabase();
         const userId = req.userId as string;
-        const wishlist = await Wishlist.find({ userId }).populate("productId");
-        if (!wishlist || wishlist.length === 0) {
+        const wishlists = await Wishlist.find({ userId }).populate("productId");
+        if (!wishlists || wishlists.length === 0) {
             return res.status(404).json({ message: "Wishlist is empty" });
         }
+        const formattedWishListItems = wishlists.map((wishList) => {
+            return {
+                cartItemId: wishList._id,
 
-        res.json(wishlist)
+                category: wishList.productId?.category,
+                countInStock: wishList.productId?.countInStock,
+                createdAt: wishList.productId?.createdAt,
+                description: wishList.productId?.description,
+                imagesUrls: wishList.productId?.imagesUrls,
+                lastUpdated: wishList.productId?.lastUpdated,
+                name: wishList.productId?.name,
+                price: wishList.productId?.price,
+                updatedAt: wishList.productId?.updatedAt,
+                userId: wishList.productId?.userId,
+                docId: wishList?._id,
+                _id: wishList.productId?._id
+
+            };
+        });
+
+        res.json(formattedWishListItems)
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Something went wrong" });
