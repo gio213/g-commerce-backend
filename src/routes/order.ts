@@ -70,7 +70,6 @@ router.post("/checkout", verifyToken, async (req: Request, res: Response) => {
         if (!paymentIntent) {
             return res.status(400).json({ message: "Payment intent not found" });
         }
-        console.log("Payment Intent Details:", paymentIntent);
 
         const cartItems = await Cart.find({ userId }).populate("productId");
 

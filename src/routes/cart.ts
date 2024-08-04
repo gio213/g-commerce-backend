@@ -33,7 +33,6 @@ router.get("/cart-items", verifyToken, async (req: Request, res: Response) => {
         await connectToDatabase();
         const userId = req.userId as string;
         const cartItems = await Cart.find({ userId }).populate("productId");
-        console.log("cartItems", cartItems);
 
         if (!cartItems.length) {
             return res.status(404).json({ message: "No items in cart" });
