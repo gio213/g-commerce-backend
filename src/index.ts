@@ -9,6 +9,7 @@ import productRoutes from "./routes/product"
 import { v2 as cloudinary } from 'cloudinary';
 import cartRoutes from "./routes/cart"
 import whishlistRoutes from "./routes/whishList"
+import checkoutOrderRoutes from "./routes/order"
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -36,6 +37,7 @@ app.use("/api/category/", categoryRoutes)
 app.use("/api/product/", productRoutes)
 app.use("/api/cart/", cartRoutes)
 app.use("/api/wishlist/", whishlistRoutes)
+app.use("/api/", checkoutOrderRoutes)
 
 app.listen(3000, () => {
     console.log("Server is running on port 3000")
