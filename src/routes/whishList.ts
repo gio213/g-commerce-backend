@@ -66,22 +66,27 @@ router.get("/wishlist-items", verifyToken, async (req: Request, res: Response) =
     }
 })
 
-router.delete("/remove/:wishlistItemId", verifyToken, async (req: Request, res: Response) => {
+router.delete("/remove/wishlist-item", verifyToken, async (req: Request, res: Response) => {
     try {
         await connectToDatabase();
         const userId = req.userId as string;
-        const { wishlistItemId } = req.params;
+        const productId = req.body.productId;
 
-        const cartItem = await Wishlist.findOneAndDelete({ _id: wishlistItemId, userId: userId });
-        if (!cartItem) {
-            return res.status(404).json({ message: "wishlist item not found" });
+        const wishListItems = await Wishlist.find({ userId });
+        const wishListItemToBeRemoved = wishListItems.find((item) => item.productId == productId);
+        if (!wishListItemToBeRemoved) {
+            return res.status(404).json({ message: "Item not found in wishlist" });
         }
-        res.json({ message: " item removed wishlist" });
+        await Wishlist.findByIdAndDelete(wishListItemToBeRemoved._id);
+        res.json({ message: "Item removed from wishlist" });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Something went wrong" });
     }
 })
+
+
+
 
 
 router.delete("/clear-wishlist", verifyToken, async (req: Request, res: Response) => {

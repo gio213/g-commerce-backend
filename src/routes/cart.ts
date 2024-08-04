@@ -33,7 +33,6 @@ router.get("/cart-items", verifyToken, async (req: Request, res: Response) => {
         await connectToDatabase();
         const userId = req.userId as string;
         const cartItems = await Cart.find({ userId }).populate("productId");
-
         if (!cartItems.length) {
             return res.status(404).json({ message: "No items in cart" });
         }
@@ -68,16 +67,21 @@ router.get("/cart-items", verifyToken, async (req: Request, res: Response) => {
 
 
 
-router.delete("/remove/:cartItemId", verifyToken, async (req: Request, res: Response) => {
+router.delete("/remove/cart-item", verifyToken, async (req: Request, res: Response) => {
     try {
         await connectToDatabase();
         const userId = req.userId as string;
-        const { cartItemId } = req.params;
-        const cartItem = await Cart.findOneAndDelete({ _id: cartItemId, userId: userId });
-        if (!cartItem) {
-            return res.status(404).json({ message: "Cart item not found" });
+
+        // retrieve all cart items which belongs to the user
+        const cartItems = await Cart.find({ userId });
+        const productId = req.body.productId;
+        const cartItemToBeRemoved = cartItems.find((item) => item.productId == productId);
+
+        if (!cartItemToBeRemoved) {
+            return res.status(404).json({ message: "Item not found in cart" });
         }
-        res.json({ message: "Cart item removed" });
+        await Cart.findByIdAndDelete(cartItemToBeRemoved._id);
+        res.json({ message: "Item removed from cart" });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Something went wrong" });
