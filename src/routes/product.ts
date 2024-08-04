@@ -1,7 +1,7 @@
 import { connectToDatabase } from "../config/database"
 import { verifyToken } from "../middleware/auth"
 import express, { Request, Response } from "express"
-import { Product } from "../models/product"
+import { Category, Product } from "../models/product"
 import { body } from "express-validator"
 import { ProductType } from "../models/product"
 import multer from "multer"

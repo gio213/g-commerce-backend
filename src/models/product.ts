@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 export type categoryType = {
     _id: string;
     name: string;
+    categoryName: string;
 
 }
 
