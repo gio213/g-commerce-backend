@@ -233,6 +233,52 @@ router.post("/create-review/:productId", verifyToken, async (req: Request, res: 
     }
 });
 
+router.delete("/review/delete", verifyToken, async (req: Request, res: Response) => {
+    try {
+        await connectToDatabase();
+        const userId = req.userId as string
+        const reviewId = req.body.reviewId
+        const review = await ProductReview.findOneAndDelete({
+            _id
+                : reviewId, userId: userId
+        })
+        if (!review) {
+            return res.status(404).json({ message: "Review not found" })
+        }
+        res.json({ message: "Review deleted successfully" })
+    } catch (error) {
+        res.status(500).json({ message: "Something went wrong" });
+
+    }
+})
+
+
+router.get("/search?", async (req: Request, res: Response) => {
+    try {
+        await connectToDatabase()
+        const { searchText } = req.query
+        const searchQuery: any = {}
+
+        if (searchText) {
+            searchQuery.name = { $regex: searchText as string, $options: "i" }
+        }
+
+
+
+        const products = await Product.find(searchQuery)
+        if (!products.length) {
+            return res.status(404).json({ message: "No products found" })
+        }
+
+        res.json(products)
+
+
+    } catch (error) {
+        res.status(500).json({ message: "Something went wrong" });
+
+    }
+})
+
 
 
 async function uploadImages(imageFiles: Express.Multer.File[]) {

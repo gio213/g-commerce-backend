@@ -72,8 +72,14 @@ router.delete("/remove/wishlist-item", verifyToken, async (req: Request, res: Re
         const userId = req.userId as string;
         const productId = req.body.productId;
 
+        if (!productId) {
+            return res.status(400).json({ message: "productId is required" })
+        }
+
+
         const wishListItems = await Wishlist.find({ userId });
         const wishListItemToBeRemoved = wishListItems.find((item) => item.productId == productId);
+
         if (!wishListItemToBeRemoved) {
             return res.status(404).json({ message: "Item not found in wishlist" });
         }
