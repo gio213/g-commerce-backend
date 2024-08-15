@@ -136,4 +136,22 @@ router.get("/orders", verifyToken, async (req: Request, res: Response) => {
     }
 });
 
+router.get("/all/orders", verifyToken, async (req: Request, res: Response) => {
+    try {
+        await connectToDatabase();
+        const orders = await Order.find({})
+        if (!orders || orders.length === 0) {
+            return res.status(400).json({ message: "No orders found" });
+        }
+        res.json(orders);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error" });
+
+    }
+});
+
+router.get("/orders/:id", verifyToken, async (req: Request, res: Response) => { });
+
 export default router;
